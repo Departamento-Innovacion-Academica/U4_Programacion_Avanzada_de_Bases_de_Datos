@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Curva de Crecimiento del Sistema</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background-color: #0d131f;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    /* Mensaje de instrucción */
+    .instruction-text {
+      color: #94a3b8;
+      font-size: 15px;
+      margin-bottom: 16px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    /* Botón ▶ Reiniciar */
+    .restart-btn {
+      background-color: #1e293b;
+      color: #38bdf8;
+      border: 1px solid #38bdf8;
+      border-radius: 50px;
+      padding: 10px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.15);
+      transition: all 0.2s ease;
+    }
+
+    .restart-btn:hover {
+      background-color: #38bdf8;
+      color: #0d131f;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(56, 189, 248, 0.3);
+    }
+
+    .restart-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Tarjeta principal */
+    .graph-card {
+      background-color: #202733;
+      border-radius: 20px;
+      padding: 35px 40px 30px 40px;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Título principal */
+    .y-axis-title {
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 25px;
+      letter-spacing: -0.2px;
+    }
+
+    /* Contenedor SVG */
+    .chart-container {
+      width: 100%;
+    }
+
+    .chart-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Animación del trazo de la curva */
+    .growth-curve {
+      stroke-dasharray: 600;
+      stroke-dashoffset: 600;
+      animation: drawCurve 1.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .growth-arrow {
+      opacity: 0;
+      animation: fadeIn 0.3s ease 1.7s forwards;
+    }
+
+    @keyframes drawCurve {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+      }
+    }
+
+    /* Leyenda inferior */
+    .legend-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 25px;
+    }
+
+    .legend-line {
+      width: 28px;
+      height: 4px;
+      background-color: #7dd3fc;
+      border-radius: 2px;
+    }
+
+    .legend-text {
+      color: #94a3b8;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    @media (max-width: 520px) {
+      .graph-card {
+        padding: 24px 20px 20px 20px;
+      }
+      .y-axis-title {
+        font-size: 18px;
+        margin-bottom: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <p class="instruction-text">Haga clic sobre el botón "▶ Reiniciar" para reiniciar la animación</p>
+
+  <button class="restart-btn" onclick="restartAnimation()">
+    ▶ Reiniciar
+  </button>
+
+  <div class="graph-card" id="graphWrapper">
+    <h2 class="y-axis-title">Usuarios / Transacciones</h2>
+
+    <div class="chart-container">
+      <svg class="chart-svg" viewBox="0 0 520 280" xmlns="http://www.w3.org/2000/svg">
+        
+        <!-- Cuadrícula Punteada (4x4) -->
+        <!-- Líneas Verticales -->
+        <line x1="130" y1="40" x2="130" y2="220" stroke="#475569" stroke-width="1.2" stroke-dasharray="4 4"/>
+        <line x1="200" y1="40" x2="200" y2="220" stroke="#475569" stroke-width="1.2" stroke-dasharray="4 4"/>
+        <line x1="270" y1="40" x2="270" y2="220" stroke="#475569" stroke-width="1.2" stroke-dasharray="4 4"/>
+        <line x1="340" y1="40" x2="340" y2="220" stroke="#475569" stroke-width="1.2" stroke-dasharray="4 4"/>
+
+        <!-- Líneas Horizontales -->
+        <line x1="60" y1="40"  x2="340" y2="40"  stroke="#475569" stroke-width="1.2" stroke-dasharray="4 4"/>
+        <line x1="60" y1="85"  x2="340" y2="85"  stroke="#475569" stroke-width="1.2" stroke-dasharray="4 4"/>
+        <line x1="60" y1="130" x2="340" y2="130" stroke="#475569" stroke-width="1.2" stroke-dasharray="4 4"/>
+        <line x1="60" y1="175" x2="340" y2="175" stroke="#475569" stroke-width="1.2" stroke-dasharray="4 4"/>
+
+        <!-- Eje Y (Línea sólida + Punta de Flecha exacta) -->
+        <line x1="60" y1="220" x2="60" y2="20" stroke="#94a3b8" stroke-width="3"/>
+        <polygon points="60,8 51,24 69,24" fill="#94a3b8"/>
+
+        <!-- Eje X (Línea sólida + Punta de Flecha exacta) -->
+        <line x1="60" y1="220" x2="360" y2="220" stroke="#94a3b8" stroke-width="3"/>
+        <polygon points="372,220 356,211 356,229" fill="#94a3b8"/>
+
+        <!-- Etiqueta Tiempo -->
+        <text x="382" y="227" fill="#94a3b8" font-size="22" font-weight="600" font-family="'Poppins', sans-serif">Tiempo</text>
+
+        <!-- Curva Exponencial Azul -->
+        <path class="growth-curve" 
+              d="M 60 218 C 170 216, 290 190, 340 50" 
+              fill="none" 
+              stroke="#7dd3fc" 
+              stroke-width="4.5" 
+              stroke-linecap="round"/>
+
+        <!-- Flecha Azul integrada en la punta de la curva -->
+        <g class="growth-arrow">
+          <path d="M 340 42 L 328 62 L 348 56 Z" fill="#7dd3fc"/>
+        </g>
+
+      </svg>
+    </div>
+
+    <!-- Leyenda -->
+    <div class="legend-container">
+      <div class="legend-line"></div>
+      <span class="legend-text">Curva de Crecimiento del Sistema</span>
+    </div>
+  </div>
+
+  <script>
+    function restartAnimation() {
+      const card = document.getElementById('graphWrapper');
+      const clone = card.cloneNode(true);
+      card.parentNode.replaceChild(clone, card);
+    }
+  </script>
+
+</body>
+</html>
