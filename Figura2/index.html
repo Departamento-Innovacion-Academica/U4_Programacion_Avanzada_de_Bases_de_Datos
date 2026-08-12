@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Balanceador de Carga - Arquitectura</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background-color: #0d131f;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    /* Mensaje de instrucción */
+    .instruction-text {
+      color: #94a3b8;
+      font-size: 15px;
+      margin-bottom: 16px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    /* Botón ▶ Reiniciar */
+    .restart-btn {
+      background-color: #1e293b;
+      color: #38bdf8;
+      border: 1px solid #38bdf8;
+      border-radius: 50px;
+      padding: 10px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.15);
+      transition: all 0.2s ease;
+    }
+
+    .restart-btn:hover {
+      background-color: #38bdf8;
+      color: #0d131f;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(56, 189, 248, 0.3);
+    }
+
+    .restart-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Tarjeta Principal */
+    .architecture-card {
+      background-color: #202733;
+      border-radius: 20px;
+      padding: 45px 50px;
+      width: 100%;
+      max-width: 580px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Fila del Cliente y Balanceador */
+    .arch-row {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+    }
+
+    .icon-wrapper {
+      width: 75px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .label-text {
+      color: #7dd3fc;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+
+    /* Conector vertical entre Cliente y Balanceador */
+    .vertical-connector {
+      width: 75px;
+      display: flex;
+      justify-content: center;
+      height: 28px;
+    }
+
+    .connector-line-short {
+      width: 3.5px;
+      background-color: #7dd3fc;
+      border-radius: 2px;
+    }
+
+    /* Contenedor del árbol de nodos */
+    .nodes-section {
+      display: flex;
+      align-items: stretch;
+      margin-top: 2px;
+    }
+
+    .tree-lines-container {
+      width: 75px;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .tree-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .nodes-list {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .node-item {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      height: 48px;
+    }
+
+    .node-icon {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .node-text {
+      color: #7dd3fc;
+      font-size: 22px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    /* Keyframes de animación en cascada */
+    @keyframes fadeInSlide {
+      from {
+        opacity: 0;
+        transform: translateY(-12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animated {
+      opacity: 0;
+      animation: fadeInSlide 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+
+    .d-1 { animation-delay: 0.1s; }
+    .d-2 { animation-delay: 0.2s; }
+    .d-3 { animation-delay: 0.3s; }
+    .d-4 { animation-delay: 0.45s; }
+    .d-5 { animation-delay: 0.6s; }
+    .d-6 { animation-delay: 0.75s; }
+    .d-7 { animation-delay: 0.9s; }
+
+    @media (max-width: 520px) {
+      .architecture-card {
+        padding: 30px 24px;
+      }
+      .label-text {
+        font-size: 19px;
+      }
+      .node-text {
+        font-size: 17px;
+      }
+      .icon-wrapper, .tree-lines-container {
+        width: 60px;
+      }
+      .node-icon {
+        width: 40px;
+        height: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <p class="instruction-text">Haga clic sobre el botón "▶ Reiniciar" para reiniciar la animación</p>
+
+  <button class="restart-btn" onclick="restartAnimation()">
+    ▶ Reiniciar
+  </button>
+
+  <div class="architecture-card" id="archWrapper">
+
+    <!-- 1. Cliente -->
+    <div class="arch-row animated d-1">
+      <div class="icon-wrapper">
+        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+          <circle cx="30" cy="20" r="13" fill="#7dd3fc"/>
+          <path d="M 10 52 C 10 38, 20 36, 30 36 C 40 36, 50 38, 50 52 C 50 54, 48 55, 45 55 L 15 55 C 12 55, 10 54, 10 52 Z" fill="#7dd3fc"/>
+        </svg>
+      </div>
+      <span class="label-text">Cliente</span>
+    </div>
+
+    <!-- Conector -->
+    <div class="vertical-connector animated d-2">
+      <div class="connector-line-short"></div>
+    </div>
+
+    <!-- 2. Balanceador de Carga -->
+    <div class="arch-row animated d-3">
+      <div class="icon-wrapper">
+        <svg width="65" height="60" viewBox="0 0 65 60" fill="none">
+          <circle cx="32.5" cy="11" r="5.5" stroke="#7dd3fc" stroke-width="3.5" fill="none"/>
+          
+          <path d="M 27 20 L 19 28" stroke="#7dd3fc" stroke-width="3" stroke-linecap="round"/>
+          <polygon points="17,29 23,29 18,23" fill="#7dd3fc"/>
+
+          <path d="M 32.5 20 L 32.5 29" stroke="#7dd3fc" stroke-width="3" stroke-linecap="round"/>
+          <polygon points="32.5,33 29,26 36,26" fill="#7dd3fc"/>
+
+          <path d="M 38 20 L 46 28" stroke="#7dd3fc" stroke-width="3" stroke-linecap="round"/>
+          <polygon points="48,29 47,23 42,29" fill="#7dd3fc"/>
+
+          <circle cx="16" cy="42" r="5" stroke="#7dd3fc" stroke-width="3.5" fill="none"/>
+          <circle cx="32.5" cy="42" r="5" stroke="#7dd3fc" stroke-width="3.5" fill="none"/>
+          <circle cx="49" cy="42" r="5" stroke="#7dd3fc" stroke-width="3.5" fill="none"/>
+        </svg>
+      </div>
+      <span class="label-text">Balanceador de Carga</span>
+    </div>
+
+    <!-- Sección del Árbol y Nodos -->
+    <div class="nodes-section">
+      
+      <!-- Líneas de conexión ajustadas de forma milimétrica -->
+      <div class="tree-lines-container animated d-4">
+        <svg class="tree-svg" viewBox="0 0 75 192" fill="none">
+          <!-- Tronco principal (Línea vertical que va desde la parte superior hasta el centro del Nodo 3) -->
+          <line x1="37.5" y1="0" x2="37.5" y2="156" stroke="#7dd3fc" stroke-width="3.5" stroke-linecap="square"/>
+
+          <!-- Rama 1: Conexión Nodo 1 (Altura Y: 24) -->
+          <path d="M 37.5 24 L 75 24" stroke="#7dd3fc" stroke-width="3.5" stroke-linecap="square"/>
+
+          <!-- Rama 2: Conexión Nodo 2 (Altura Y: 96) -->
+          <path d="M 37.5 96 L 75 96" stroke="#7dd3fc" stroke-width="3.5" stroke-linecap="square"/>
+
+          <!-- Rama 3: Conexión Nodo 3 (Curva final en L, Altura Y: 168) -->
+          <path d="M 37.5 168 L 75 168" stroke="#7dd3fc" stroke-width="3.5" stroke-linecap="square"/>
+        </svg>
+      </div>
+
+      <!-- Lista de Nodos -->
+      <div class="nodes-list">
+
+        <!-- Nodo 1 -->
+        <div class="node-item animated d-5">
+          <div class="node-icon">
+            <svg width="42" height="42" viewBox="0 0 50 50" fill="none">
+              <path d="M 25 8 L 44 17 L 25 26 L 6 17 Z" stroke="#7dd3fc" stroke-width="3.5" stroke-linejoin="round" fill="none"/>
+              <path d="M 6 25 L 25 34 L 44 25" stroke="#7dd3fc" stroke-width="3.5" stroke-linejoin="round" fill="none"/>
+              <path d="M 6 33 L 25 42 L 44 33" stroke="#7dd3fc" stroke-width="3.5" stroke-linejoin="round" fill="none"/>
+            </svg>
+          </div>
+          <span class="node-text">Nodo de base de datos 1</span>
+        </div>
+
+        <!-- Nodo 2 -->
+        <div class="node-item animated d-6">
+          <div class="node-icon">
+            <svg width="42" height="42" viewBox="0 0 50 50" fill="none">
+              <ellipse cx="25" cy="12" rx="18" ry="6" stroke="#7dd3fc" stroke-width="3.5" fill="none"/>
+              <path d="M 7 12 L 7 24 C 7 30, 43 30, 43 24 L 43 12" stroke="#7dd3fc" stroke-width="3.5" fill="none"/>
+              <path d="M 7 24 L 7 36 C 7 42, 43 42, 43 36 L 43 24" stroke="#7dd3fc" stroke-width="3.5" fill="none"/>
+            </svg>
+          </div>
+          <span class="node-text">Nodo de base de datos 2</span>
+        </div>
+
+        <!-- Nodo 3 -->
+        <div class="node-item animated d-7">
+          <div class="node-icon">
+            <svg width="42" height="42" viewBox="0 0 50 50" fill="none">
+              <path d="M 25 8 L 44 17 L 25 26 L 6 17 Z" stroke="#7dd3fc" stroke-width="3.5" stroke-linejoin="round" fill="none"/>
+              <path d="M 6 25 L 25 34 L 44 25" stroke="#7dd3fc" stroke-width="3.5" stroke-linejoin="round" fill="none"/>
+              <path d="M 6 33 L 25 42 L 44 33" stroke="#7dd3fc" stroke-width="3.5" stroke-linejoin="round" fill="none"/>
+            </svg>
+          </div>
+          <span class="node-text">Nodo de base de datos 3</span>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function restartAnimation() {
+      const card = document.getElementById('archWrapper');
+      const clone = card.cloneNode(true);
+      card.parentNode.replaceChild(clone, card);
+    }
+  </script>
+
+</body>
+</html>
