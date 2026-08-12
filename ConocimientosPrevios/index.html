@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Programación y Optimización en Bases de Datos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-primary: #f1f5f9;
+      --card-bg: #ffffff;
+      --accent: #483C9A;
+      --accent-light: #6b5bcf;
+      --accent-soft: rgba(72, 60, 154, 0.08);
+      --accent-glow: rgba(72, 60, 154, 0.2);
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border-light: rgba(72, 60, 154, 0.15);
+      --radius-lg: 16px;
+      --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      overflow-x: hidden;
+    }
+
+    /* INSTRUCCIÓN FLOTANTE */
+    .floating-instruction {
+      background: #ffffff;
+      border: 1px solid var(--accent-light);
+      color: var(--accent);
+      padding: 0.6rem 1.4rem;
+      border-radius: 50px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      box-shadow: 0 4px 15px rgba(72, 60, 154, 0.12);
+      animation: pulse 2.5s infinite ease-in-out;
+      text-align: center;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: translateY(0);
+        box-shadow: 0 4px 15px rgba(72, 60, 154, 0.12);
+      }
+      50% {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 22px rgba(72, 60, 154, 0.22);
+      }
+    }
+
+    /* CONTENEDOR PRINCIPAL / GRID */
+    .container {
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    .grid-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    /* TARJETAS INTERACTIVAS CENTRADAS */
+    .card-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border-light);
+      border-top: 5px solid var(--accent);
+      border-radius: var(--radius-lg);
+      height: 210px;
+      cursor: pointer;
+      text-align: center;
+      outline: none;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition-smooth);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 1.8rem;
+      gap: 1rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    }
+
+    .card-btn h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--accent);
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      color: var(--accent-light);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .card-footer span {
+      transition: var(--transition-smooth);
+      display: inline-block;
+    }
+
+    /* EFECTOS HOVER */
+    .card-btn:hover, .card-btn:focus-visible {
+      transform: translateY(-5px);
+      border-color: var(--accent-light);
+      border-top-color: var(--accent);
+      box-shadow: 0 12px 30px var(--accent-glow);
+      background: #ffffff;
+    }
+
+    .card-btn:hover .card-footer span {
+      transform: translateX(4px);
+    }
+
+    /* VENTANA EMERGENTE (MODAL) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: var(--transition-smooth);
+      z-index: 1000;
+      padding: 1.5rem;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-top: 6px solid var(--accent);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      max-width: 600px;
+      width: 100%;
+      transform: scale(0.85) translateY(20px);
+      transition: var(--transition-smooth);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      position: relative;
+    }
+
+    .modal-overlay.active .modal-box {
+      transform: scale(1) translateY(0);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1.2rem;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-light);
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-smooth);
+    }
+
+    .modal-close:hover {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .modal-box h2 {
+      font-size: 1.35rem;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      padding-right: 2rem;
+      line-height: 1.4;
+      text-align: left;
+    }
+
+    .modal-box p {
+      color: var(--text-main);
+      font-size: 1rem;
+      line-height: 1.7;
+      text-align: left;
+    }
+
+    .modal-hint {
+      margin-top: 1.5rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: right;
+      border-top: 1px solid var(--border-light);
+      padding-top: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- INSTRUCCIÓN FLOTANTE -->
+  <div class="floating-instruction">
+    💡 Haga clic sobre las tarjetas para ampliar la información.
+  </div>
+
+  <!-- REJILLA DE TARJETAS -->
+  <main class="container">
+    <div class="grid-cards">
+
+      <!-- Tarjeta 1 -->
+      <button class="card-btn" onclick="openModal('Comprensión de programación en bases de datos', 'conocimiento básico sobre el uso de procedimientos almacenados, funciones y triggers, entendiendo su papel dentro de la lógica que se ejecuta en el servidor de base de datos.')">
+        <h3>Comprensión de programación en bases de datos</h3>
+        <div class="card-footer">Ampliar información <span>&rarr;</span></div>
+      </button>
+
+      <!-- Tarjeta 2 -->
+      <button class="card-btn" onclick="openModal('Manejo de consultas SQL y optimización básica', 'capacidad para construir consultas SQL eficientes y comprender los elementos que influyen en el rendimiento de una consulta, como el uso de índices, filtros y joins.')">
+        <h3>Manejo de consultas SQL y optimización básica</h3>
+        <div class="card-footer">Ampliar información <span>&rarr;</span></div>
+      </button>
+
+      <!-- Tarjeta 3 -->
+      <button class="card-btn" onclick="openModal('Interpretación de planes de ejecución', 'nociones sobre cómo los sistemas gestores de bases de datos procesan las consultas y cómo analizar el plan de ejecución para identificar posibles mejoras de rendimiento.')">
+        <h3>Interpretación de planes de ejecución</h3>
+        <div class="card-footer">Ampliar información <span>&rarr;</span></div>
+      </button>
+
+      <!-- Tarjeta 4 -->
+      <button class="card-btn" onclick="openModal('Conceptos de integración de sistemas y acceso a datos', 'comprensión general de cómo las aplicaciones acceden a la información almacenada en bases de datos y del papel que cumplen las APIs o servicios intermedios en la comunicación entre sistemas.')">
+        <h3>Conceptos de integración de sistemas y acceso a datos</h3>
+        <div class="card-footer">Ampliar información <span>&rarr;</span></div>
+      </button>
+
+      <!-- Tarjeta 5 -->
+      <button class="card-btn" onclick="openModal('Capacidad de análisis en el diseño de soluciones', 'disposición para evaluar diferentes alternativas técnicas al momento de diseñar soluciones basadas en bases de datos, considerando aspectos como rendimiento, organización de la información y crecimiento del sistema.')">
+        <h3>Capacidad de análisis en el diseño de soluciones</h3>
+        <div class="card-footer">Ampliar información <span>&rarr;</span></div>
+      </button>
+
+      <!-- Tarjeta 6 -->
+      <button class="card-btn" onclick="openModal('Actitud crítica frente a la escalabilidad de los sistemas', 'interés por analizar cómo los sistemas pueden adaptarse al crecimiento en el volumen de datos y en la cantidad de usuarios, entendiendo la importancia de diseñar soluciones que puedan evolucionar con el tiempo.')">
+        <h3>Actitud crítica frente a la escalabilidad de los sistemas</h3>
+        <div class="card-footer">Ampliar información <span>&rarr;</span></div>
+      </button>
+
+    </div>
+  </main>
+
+  <!-- PANTALLA EMERGENTE / MODAL -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModalOnOutside(event)">
+    <div class="modal-box" role="dialog" aria-modal="true">
+      <button class="modal-close" onclick="closeModal()" aria-label="Cerrar">&times;</button>
+      <h2 id="modalTitle">Título del concepto</h2>
+      <p id="modalBody">Descripción detallada...</p>
+      <div class="modal-hint">Presione <strong>Esc</strong> para cerrar</div>
+    </div>
+  </div>
+
+  <script>
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+
+    function openModal(title, text) {
+      modalTitle.innerText = title;
+      modalBody.innerText = text;
+      modalOverlay.classList.add('active');
+    }
+
+    function closeModal() {
+      modalOverlay.classList.remove('active');
+    }
+
+    function closeModalOnOutside(event) {
+      if (event.target === modalOverlay) {
+        closeModal();
+      }
+    }
+
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape' && modalOverlay.classList.contains('active')) {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>
