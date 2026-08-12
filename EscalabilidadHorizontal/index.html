@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escalabilidad Horizontal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #ffffff;
+            background-image: radial-gradient(#dcdcdc 1px, transparent 1px);
+            background-size: 20px 20px;
+            padding: 40px;
+            position: relative;
+        }
+
+        /* INSTRUCCIÓN SUPERIOR DERECHA */
+        .instruction-text {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            font-size: 14px;
+            color: #483C9A;
+            font-weight: 500;
+            border-right: 3px solid #483C9A;
+            padding-right: 10px;
+        }
+
+        /* CONTENEDOR */
+        .container {
+            width: 950px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* BOTONES CENTRADOS */
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            max-width: 900px;
+        }
+
+        .tab-btn {
+            position: relative;
+            width: 320px;
+            height: 70px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 12px;
+            background: #483C9A;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: background-color .25s ease, box-shadow .25s ease, transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .tab-btn:hover {
+            background: #362c77;
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.18);
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background: #211952;
+            cursor: default;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+            transform: translateY(0);
+        }
+
+        /* INDICADOR EN EL BOTÓN ACTIVO */
+        .tab-btn::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) scaleX(0);
+            width: 50%;
+            height: 4px;
+            background-color: #ffffff;
+            border-radius: 4px 4px 0 0;
+            transition: transform 0.3s ease;
+        }
+
+        .tab-btn.active::after {
+            transform: translateX(-50%) scaleX(1);
+        }
+
+        /* CAJA DE TEXTO */
+        .content-box {
+            width: 100%;
+            background: #F7F7F7;
+            border-radius: 14px;
+            padding: 35px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+            min-height: 280px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+
+        /* CONTENIDO */
+        .tab-content {
+            display: none;
+            animation: fadeSlide .6s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* TITULOS */
+        h2 {
+            color: #483C9A;
+            margin-bottom: 15px;
+            font-weight: 600;
+            font-size: 24px;
+        }
+
+        /* TEXTO */
+        p {
+            margin-top: 12px;
+            line-height: 1.6;
+            color: #333;
+            text-align: justify;
+        }
+
+        ul {
+            margin-top: 12px;
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+            color: #444;
+        }
+
+        /* ANIMACION */
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* RESPONSIVO */
+        @media (max-width: 768px) {
+            .instruction-text {
+                position: static;
+                margin-bottom: 20px;
+                text-align: center;
+                border-right: none;
+                border-bottom: 2px solid #483C9A;
+                padding-bottom: 5px;
+            }
+
+            .tab-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="instruction-text">
+        Haga clic sobre cada botón para ampliar la información
+    </div>
+
+    <div class="container">
+
+        <div class="tabs">
+
+            <button class="tab-btn active" onclick="openTab(event,'t1')">
+                VENTAJAS DE LA ESCALABILIDAD HORIZONTAL
+            </button>
+
+            <button class="tab-btn" onclick="openTab(event,'t2')">
+                DESAFÍOS DE LA ESCALABILIDAD HORIZONTAL
+            </button>
+
+        </div>
+
+        <div class="content-box">
+
+            <div id="t1" class="tab-content active">
+                <h2>Ventajas de la escalabilidad horizontal</h2>
+                <p>Entre las ventajas más importantes de este enfoque se encuentran:</p>
+                <ul>
+                    <li>Capacidad prácticamente ilimitada de crecimiento.</li>
+                    <li>Mayor tolerancia a fallos.</li>
+                    <li>Mejor distribución de la carga de trabajo.</li>
+                    <li>Mayor disponibilidad del sistema.</li>
+                </ul>
+                <p>Estas características hacen que la escalabilidad horizontal sea ampliamente utilizada en
+                    arquitecturas modernas basadas en computación en la nube y sistemas distribuidos.</p>
+            </div>
+
+            <div id="t2" class="tab-content">
+                <h2>Desafíos de la escalabilidad horizontal</h2>
+                <p>A pesar de sus beneficios, este enfoque introduce nuevos desafíos en el diseño de sistemas de bases
+                    de datos. Entre ellos se encuentran:</p>
+                <ul>
+                    <li>Complejidad en la distribución de datos.</li>
+                    <li>Sincronización entre nodos del sistema.</li>
+                    <li>Consistencia de los datos en entornos distribuidos.</li>
+                    <li>Administración de múltiples servidores.</li>
+                </ul>
+                <p>Para abordar estos desafíos, los sistemas modernos utilizan técnicas como la replicación de datos y
+                    el particionamiento o sharding, que permiten distribuir la información entre múltiples nodos del
+                    sistema de forma eficiente (Kleppmann, 2017).</p>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function openTab(evt, tabId) {
+            const buttons = document.querySelectorAll(".tab-btn");
+            const contents = document.querySelectorAll(".tab-content");
+            buttons.forEach(btn => btn.classList.remove("active"));
+            contents.forEach(c => c.classList.remove("active"));
+            evt.currentTarget.classList.add("active");
+            document.getElementById(tabId).classList.add("active");
+        }
+    </script>
+
+</body>
+
+</html>
