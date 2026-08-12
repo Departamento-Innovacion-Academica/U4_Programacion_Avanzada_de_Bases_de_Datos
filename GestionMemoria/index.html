@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Optimización de Recursos en Bases de Datos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-primary: #f1f5f9;
+      --card-bg: #ffffff;
+      --accent: #483C9A;
+      --accent-light: #6b5bcf;
+      --accent-soft: rgba(72, 60, 154, 0.08);
+      --accent-glow: rgba(72, 60, 154, 0.2);
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border-light: rgba(72, 60, 154, 0.15);
+      --radius-lg: 16px;
+      --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      overflow-x: hidden;
+    }
+
+    /* INSTRUCCIÓN FLOTANTE */
+    .floating-instruction {
+      background: #ffffff;
+      border: 1px solid var(--accent-light);
+      color: var(--accent);
+      padding: 0.6rem 1.4rem;
+      border-radius: 50px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      box-shadow: 0 4px 15px rgba(72, 60, 154, 0.12);
+      animation: pulse 2.5s infinite ease-in-out;
+      text-align: center;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: translateY(0);
+        box-shadow: 0 4px 15px rgba(72, 60, 154, 0.12);
+      }
+      50% {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 22px rgba(72, 60, 154, 0.22);
+      }
+    }
+
+    /* CONTENEDOR PRINCIPAL / GRID */
+    .container {
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    .grid-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    /* TARJETAS INTERACTIVAS CENTRADAS */
+    .card-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border-light);
+      border-top: 5px solid var(--accent);
+      border-radius: var(--radius-lg);
+      height: 210px;
+      cursor: pointer;
+      text-align: center;
+      outline: none;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition-smooth);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 1.8rem;
+      gap: 1rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    }
+
+    .card-btn h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--accent);
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      color: var(--accent-light);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .card-footer span {
+      transition: var(--transition-smooth);
+      display: inline-block;
+    }
+
+    /* EFECTOS HOVER */
+    .card-btn:hover, .card-btn:focus-visible {
+      transform: translateY(-5px);
+      border-color: var(--accent-light);
+      border-top-color: var(--accent);
+      box-shadow: 0 12px 30px var(--accent-glow);
+      background: #ffffff;
+    }
+
+    .card-btn:hover .card-footer span {
+      transform: translateX(4px);
+    }
+
+    /* VENTANA EMERGENTE (MODAL) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: var(--transition-smooth);
+      z-index: 1000;
+      padding: 1.5rem;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-top: 6px solid var(--accent);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      max-width: 650px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      transform: scale(0.85) translateY(20px);
+      transition: var(--transition-smooth);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      position: relative;
+    }
+
+    .modal-overlay.active .modal-box {
+      transform: scale(1) translateY(0);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1.2rem;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-light);
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-smooth);
+    }
+
+    .modal-close:hover {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .modal-box h2 {
+      font-size: 1.35rem;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      padding-right: 2rem;
+      line-height: 1.4;
+      text-align: left;
+    }
+
+    .modal-box div.content {
+      color: var(--text-main);
+      font-size: 0.95rem;
+      line-height: 1.7;
+      text-align: left;
+    }
+
+    .modal-box div.content p {
+      margin-bottom: 1rem;
+    }
+
+    .modal-box div.content ul {
+      margin-bottom: 1rem;
+      padding-left: 1.2rem;
+    }
+
+    .modal-box div.content li {
+      margin-bottom: 0.4rem;
+    }
+
+    .modal-hint {
+      margin-top: 1.5rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: right;
+      border-top: 1px solid var(--border-light);
+      padding-top: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- INSTRUCCIÓN FLOTANTE -->
+  <div class="floating-instruction">
+    💡 Haga clic sobre las tarjetas para ampliar la información.
+  </div>
+
+  <!-- REJILLA DE TARJETAS -->
+  <main class="container">
+    <div class="grid-cards">
+
+      <!-- Tarjeta 1 -->
+      <button class="card-btn" onclick="openModal('Gestión eficiente de memoria', `
+        <p>La memoria constituye uno de los recursos más importantes en el funcionamiento de las bases de datos. Los sistemas gestores utilizan áreas de memoria para almacenar páginas de datos, planes de ejecución y resultados temporales de consultas.</p>
+        <p>Cuando el sistema dispone de suficiente memoria, muchas operaciones pueden ejecutarse directamente en memoria sin necesidad de acceder al almacenamiento físico. Esto permite reducir significativamente el tiempo necesario para procesar consultas.</p>
+        <p>Entre las estrategias utilizadas para optimizar el uso de memoria se encuentran:</p>
+        <ul>
+          <li>Configuración adecuada de buffers de datos.</li>
+          <li>Uso eficiente de caché para consultas frecuentes.</li>
+          <li>Reducción de operaciones temporales innecesarias.</li>
+          <li>Optimización del tamaño de estructuras en memoria.</li>
+        </ul>
+        <p>Estas estrategias permiten reducir el número de accesos a disco y mejorar el rendimiento general del sistema (Harrington, 2016).</p>
+      `)">
+        <h3>Gestión eficiente de memoria</h3>
+        <div class="card-footer">Ampliar información <span>&rarr;</span></div>
+      </button>
+
+      <!-- Tarjeta 2 -->
+      <button class="card-btn" onclick="openModal('Optimización del uso del procesador', `
+        <p>El procesador es el encargado de ejecutar las operaciones necesarias para procesar consultas SQL, realizar cálculos y gestionar las transacciones del sistema. Las consultas complejas o mal optimizadas pueden consumir una gran cantidad de ciclos de CPU, lo que puede generar saturación en el servidor de base de datos.</p>
+        <p>Para optimizar el uso del procesador, es importante:</p>
+        <ul>
+          <li>Evitar consultas innecesariamente complejas.</li>
+          <li>Utilizar índices adecuados para reducir el volumen de datos procesados.</li>
+          <li>Limitar operaciones de agregación sobre grandes conjuntos de datos.</li>
+        </ul>
+        <p>Estas prácticas permiten reducir la carga sobre el procesador y mejorar la capacidad del sistema para manejar múltiples consultas concurrentes.</p>
+      `)">
+        <h3>Optimización del uso del procesador</h3>
+        <div class="card-footer">Ampliar información <span>&rarr;</span></div>
+      </button>
+
+      <!-- Tarjeta 3 -->
+      <button class="card-btn" onclick="openModal('Optimización del acceso a almacenamiento', `
+        <p>El acceso al almacenamiento constituye uno de los factores que más influyen en el rendimiento de los sistemas de bases de datos. Las operaciones de lectura y escritura en disco suelen ser más lentas que las operaciones realizadas en memoria, por lo que el número de accesos al almacenamiento debe minimizarse siempre que sea posible.</p>
+        <p>Entre las estrategias utilizadas para optimizar el acceso al almacenamiento se encuentran:</p>
+        <ul>
+          <li>Uso de índices para reducir escaneos completos de tablas.</li>
+          <li>Implementación de caché en memoria.</li>
+          <li>Utilización de dispositivos de almacenamiento de alto rendimiento.</li>
+        </ul>
+        <p>Estas prácticas permiten mejorar la eficiencia en el acceso a los datos y reducir los tiempos de respuesta del sistema.</p>
+      `)">
+        <h3>Optimización del acceso a almacenamiento</h3>
+        <div class="card-footer">Ampliar información <span>&rarr;</span></div>
+      </button>
+
+    </div>
+  </main>
+
+  <!-- PANTALLA EMERGENTE / MODAL -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModalOnOutside(event)">
+    <div class="modal-box" role="dialog" aria-modal="true">
+      <button class="modal-close" onclick="closeModal()" aria-label="Cerrar">&times;</button>
+      <h2 id="modalTitle">Título del concepto</h2>
+      <div class="content" id="modalBody">Descripción detallada...</div>
+      <div class="modal-hint">Presione <strong>Esc</strong> para cerrar</div>
+    </div>
+  </div>
+
+  <script>
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+
+    function openModal(title, htmlContent) {
+      modalTitle.innerText = title;
+      modalBody.innerHTML = htmlContent;
+      modalOverlay.classList.add('active');
+    }
+
+    function closeModal() {
+      modalOverlay.classList.remove('active');
+    }
+
+    function closeModalOnOutside(event) {
+      if (event.target === modalOverlay) {
+        closeModal();
+      }
+    }
+
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape' && modalOverlay.classList.contains('active')) {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>
