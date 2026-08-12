@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arquitectura de Base de Datos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background-color: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    /* Mensaje de instrucción */
+    .instruction-text {
+      color: #334155;
+      font-size: 15px;
+      margin-bottom: 16px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    /* Botón ▶ Reiniciar */
+    .restart-btn {
+      background-color: #0f172a;
+      color: #ffffff;
+      border: none;
+      border-radius: 50px;
+      padding: 10px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 35px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+      transition: all 0.2s ease;
+    }
+
+    .restart-btn:hover {
+      background-color: #1e293b;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.25);
+    }
+
+    .restart-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Contenedor Principal Diagrama */
+    .architecture-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 960px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    /* SVG para Conectores */
+    .connections-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Columna de Tarjetas Izquierda */
+    .left-column {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      width: 310px;
+      z-index: 2;
+    }
+
+    /* Tarjeta Central */
+    .center-column {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2;
+    }
+
+    /* Columna de Tarjetas Derecha */
+    .right-column {
+      display: flex;
+      align-items: center;
+      width: 320px;
+      z-index: 2;
+    }
+
+    /* Estilo General de Tarjeta */
+    .card {
+      background-color: #ffffff;
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.04);
+      border: 1px solid #f1f5f9;
+      position: relative;
+      overflow: hidden;
+      min-height: 90px;
+    }
+
+    /* Fondo Diagonal en Sombra (Split gris claro) */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #e2e8f0 0%, #e2e8f0 40%, transparent 40.1%);
+      opacity: 0.6;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .card-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 16px;
+    }
+
+    .card-text {
+      color: #0f172a;
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.25;
+      letter-spacing: -0.2px;
+    }
+
+    .card-text span {
+      display: block;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .icon-box {
+      width: 58px;
+      height: 58px;
+      flex-shrink: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Tarjeta Central Base de Datos */
+    .center-card {
+      width: 200px;
+      height: 220px;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+    }
+
+    .center-card::before {
+      background: linear-gradient(135deg, #e2e8f0 0%, #e2e8f0 48%, transparent 48.1%);
+    }
+
+    .center-card .card-content {
+      flex-direction: column;
+      justify-content: center;
+      gap: 18px;
+    }
+
+    .center-card .icon-box {
+      width: 90px;
+      height: 80px;
+    }
+
+    .center-card .card-text {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    /* Animación de Cascada */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animated {
+      opacity: 0;
+      animation: fadeInUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+
+    .d-1 { animation-delay: 0.1s; }
+    .d-2 { animation-delay: 0.25s; }
+    .d-3 { animation-delay: 0.4s; }
+    .d-4 { animation-delay: 0.55s; }
+    .d-5 { animation-delay: 0.7s; }
+
+    /* Adaptabilidad Móvil */
+    @media (max-width: 860px) {
+      .architecture-wrapper {
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+      }
+      .connections-svg {
+        display: none;
+      }
+      .left-column, .right-column, .center-card {
+        width: 100%;
+        max-width: 380px;
+      }
+      .center-card {
+        height: auto;
+        padding: 30px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <p class="instruction-text">Haga clic sobre el botón "▶ Reiniciar" para reiniciar la animación</p>
+
+  <button class="restart-btn" onclick="restartAnimation()">
+    ▶ Reiniciar
+  </button>
+
+  <div class="architecture-wrapper" id="archWrapper">
+
+    <!-- Líneas de Conexión SVG -->
+    <svg class="connections-svg" viewBox="0 0 960 380" fill="none">
+      <!-- Conexiones Izquierdas hacia la BD -->
+      <!-- Rama CPU (Arriba) -->
+      <path d="M 310 50 L 355 50 L 355 190 L 388 190" stroke="#000000" stroke-width="2.5" fill="none"/>
+      <!-- Rama Memoria (Centro) -->
+      <line x1="310" y1="190" x2="388" y2="190" stroke="#000000" stroke-width="2.5"/>
+      <!-- Rama Disco (Abajo) -->
+      <path d="M 310 330 L 355 330 L 355 190 L 388 190" stroke="#000000" stroke-width="2.5" fill="none"/>
+      <!-- Punta de flecha hacia la BD -->
+      <polygon points="393,190 383,184 383,196" fill="#000000"/>
+
+      <!-- Conexión Doble Flecha entre BD y Red -->
+      <line x1="570" y1="190" x2="630" y2="190" stroke="#000000" stroke-width="2.5"/>
+      <polygon points="568,190 578,184 578,196" fill="#000000"/>
+      <polygon points="635,190 625,184 625,196" fill="#000000"/>
+    </svg>
+
+    <!-- COLUMNA IZQUIERDA -->
+    <div class="left-column">
+
+      <!-- 1. CPU -->
+      <div class="card animated d-1">
+        <div class="card-content">
+          <div class="card-text" style="flex: 1;">
+            CPU <span>– Procesamiento de consultas</span>
+          </div>
+          <div class="icon-box">
+            <svg width="55" height="55" viewBox="0 0 60 60" fill="none">
+              <!-- Encapsulado chip -->
+              <rect x="12" y="12" width="36" height="36" rx="4" fill="#cbd5e1"/>
+              <rect x="16" y="16" width="28" height="28" rx="2" fill="#94a3b8"/>
+              <!-- Núcleo Dorado -->
+              <rect x="22" y="22" width="16" height="16" rx="2" fill="#eab308"/>
+              <rect x="25" y="25" width="10" height="10" rx="1" fill="#ca8a04"/>
+              <!-- Pines exteriores -->
+              <path d="M 20 6 L 20 12 M 26 6 L 26 12 M 34 6 L 34 12 M 40 6 L 40 12" stroke="#64748b" stroke-width="2.5"/>
+              <path d="M 20 48 L 20 54 M 26 48 L 26 54 M 34 48 L 34 54 M 40 48 L 40 54" stroke="#64748b" stroke-width="2.5"/>
+              <path d="M 6 20 L 12 20 M 6 26 L 12 26 M 6 34 L 12 34 M 6 40 L 12 40" stroke="#64748b" stroke-width="2.5"/>
+              <path d="M 48 20 L 54 20 M 48 26 L 54 26 M 48 34 L 54 34 M 48 40 L 54 40" stroke="#64748b" stroke-width="2.5"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Memoria -->
+      <div class="card animated d-2">
+        <div class="card-content">
+          <div class="card-text" style="flex: 1;">
+            Memoria <span>– Caché de datos y buffers</span>
+          </div>
+          <div class="icon-box">
+            <svg width="60" height="55" viewBox="0 0 70 50" fill="none">
+              <!-- PCB Verde -->
+              <rect x="5" y="10" width="60" height="26" rx="3" fill="#16a34a"/>
+              <!-- Chips de memoria -->
+              <rect x="12" y="14" width="10" height="14" rx="1" fill="#1e293b"/>
+              <rect x="26" y="14" width="10" height="14" rx="1" fill="#1e293b"/>
+              <rect x="40" y="14" width="10" height="14" rx="1" fill="#1e293b"/>
+              <!-- Conectores Dorados -->
+              <rect x="10" y="36" width="3" height="6" fill="#eab308"/>
+              <rect x="15" y="36" width="3" height="6" fill="#eab308"/>
+              <rect x="20" y="36" width="3" height="6" fill="#eab308"/>
+              <rect x="25" y="36" width="3" height="6" fill="#eab308"/>
+              <rect x="30" y="36" width="3" height="6" fill="#eab308"/>
+              <rect x="37" y="36" width="3" height="6" fill="#eab308"/>
+              <rect x="42" y="36" width="3" height="6" fill="#eab308"/>
+              <rect x="47" y="36" width="3" height="6" fill="#eab308"/>
+              <rect x="52" y="36" width="3" height="6" fill="#eab308"/>
+              <rect x="57" y="36" width="3" height="6" fill="#eab308"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Disco -->
+      <div class="card animated d-3">
+        <div class="card-content">
+          <div class="card-text" style="flex: 1;">
+            Disco <span>– Almacenamiento de tablas e índices</span>
+          </div>
+          <div class="icon-box">
+            <svg width="55" height="55" viewBox="0 0 60 60" fill="none">
+              <rect x="10" y="5" width="40" height="50" rx="4" fill="#1e293b"/>
+              <circle cx="30" cy="26" r="16" fill="#cbd5e1"/>
+              <circle cx="30" cy="26" r="5" fill="#64748b"/>
+              <circle cx="30" cy="26" r="1.5" fill="#ffffff"/>
+              <rect x="15" y="46" width="20" height="6" rx="1" fill="#475569"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- COLUMNA CENTRAL -->
+    <div class="center-column">
+      <div class="card center-card animated d-4">
+        <div class="card-content">
+          <div class="icon-box">
+            <svg width="90" height="75" viewBox="0 0 120 100" fill="none">
+              <!-- Cilindro Trasero -->
+              <ellipse cx="45" cy="28" rx="24" ry="10" fill="#2563eb"/>
+              <path d="M 21 28 L 21 62 C 21 68, 69 68, 69 62 L 69 28 Z" fill="#1d4ed8"/>
+              <ellipse cx="45" cy="62" rx="24" ry="10" fill="#2563eb"/>
+              <circle cx="32" cy="36" r="1.5" fill="#facc15"/>
+
+              <!-- Cilindro Frontal -->
+              <ellipse cx="75" cy="40" rx="26" ry="11" fill="#1d4ed8"/>
+              <path d="M 49 40 L 49 78 C 49 85, 101 85, 101 78 L 101 40 Z" fill="#1e40af"/>
+              <ellipse cx="75" cy="78" rx="26" ry="11" fill="#2563eb"/>
+              <circle cx="60" cy="50" r="1.5" fill="#4ade80"/>
+            </svg>
+          </div>
+          <div class="card-text">Base de datos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMNA DERECHA -->
+    <div class="right-column">
+      <!-- 4. Red -->
+      <div class="card animated d-5">
+        <div class="card-content">
+          <div class="icon-box">
+            <svg width="60" height="55" viewBox="0 0 70 60" fill="none">
+              <!-- Nube azul -->
+              <path d="M 25 35 C 20 35, 16 30, 18 24 C 15 22, 16 16, 22 15 C 26 10, 36 10, 40 14 C 45 12, 52 16, 50 22 C 55 24, 54 32, 48 35 Z" fill="#60a5fa"/>
+              <!-- Red de nodos (Naranjas) -->
+              <line x1="20" y1="46" x2="30" y2="34" stroke="#ea580c" stroke-width="3"/>
+              <line x1="30" y1="34" x2="42" y2="42" stroke="#ea580c" stroke-width="3"/>
+              <line x1="42" y1="42" x2="30" y2="52" stroke="#ea580c" stroke-width="3"/>
+              <!-- Nodos circulares -->
+              <circle cx="20" cy="46" r="5" fill="#c2410c"/>
+              <circle cx="30" cy="34" r="6" fill="#ea580c"/>
+              <circle cx="42" cy="42" r="6.5" fill="#ea580c"/>
+              <circle cx="30" cy="52" r="5" fill="#c2410c"/>
+            </svg>
+          </div>
+          <div class="card-text" style="flex: 1;">
+            Red <span>– Comunicación entre aplicaciones y servidor</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function restartAnimation() {
+      const wrapper = document.getElementById('archWrapper');
+      const clone = wrapper.cloneNode(true);
+      wrapper.parentNode.replaceChild(clone, wrapper);
+    }
+  </script>
+
+</body>
+</html>
