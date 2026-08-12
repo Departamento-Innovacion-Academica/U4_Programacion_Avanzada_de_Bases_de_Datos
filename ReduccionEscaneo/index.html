@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimización de Consultas en Bases de Datos</title>
+    <!-- Fuente Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Degradado de fondo de oscuro a claro usando la paleta base #483C9A */
+            --bg-color-dark: #221c4a;
+            --bg-color-light: #5f52b8;
+            
+            /* Tarjeta con acabado glassmorphism */
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --border-color: rgba(255, 255, 255, 0.18);
+            
+            /* Textos */
+            --text-primary: #ffffff;
+            --text-secondary: #dcd7fa;
+            
+            /* Acento y Botones */
+            --accent-primary: #7d6de8;
+            --btn-bg: rgba(255, 255, 255, 0.12);
+            --btn-hover: #483C9A;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--bg-color-dark) 0%, var(--bg-color-light) 100%);
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        /* Contenedor Principal */
+        .carousel-container {
+            width: 100%;
+            max-width: 740px;
+            position: relative;
+        }
+
+        /* Instrucción Flotante Estilo Apple */
+        .floating-instruction {
+            position: absolute;
+            top: -45px;
+            right: 8px;
+            background: rgba(34, 28, 74, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            letter-spacing: -0.01em;
+            pointer-events: none;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .floating-instruction span {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        /* Contenedor de Tarjetas */
+        .cards-wrapper {
+            position: relative;
+            width: 100%;
+            height: 540px;
+        }
+
+        /* Estilo de la Tarjeta */
+        .card {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--card-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--border-color);
+            border-radius: 28px;
+            padding: 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+            text-align: left;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Tarjeta Activa */
+        .card.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        /* Animación de entrada */
+        .card.active .card-title,
+        .card.active .card-text {
+            animation: fadeInUp 0.7s cubic-bezier(0.25, 1, 0.5, 1) both;
+        }
+
+        .card.active .card-title { animation-delay: 0.1s; }
+        .card.active .card-text { animation-delay: 0.25s; }
+
+        /* Elementos de la Tarjeta */
+        .card-title {
+            font-size: 1.4rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            line-height: 1.3;
+            margin-bottom: 20px;
+        }
+
+        .card-text {
+            font-size: 1rem;
+            line-height: 1.75;
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
+
+        .card-text p {
+            margin-bottom: 16px;
+        }
+
+        .card-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Controles Inferiores */
+        .controls-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 28px;
+            padding: 0 8px;
+        }
+
+        /* Indicadores (Dots) */
+        .indicators {
+            display: flex;
+            gap: 10px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+            transition: background-color 0.3s ease, transform 0.3s ease, width 0.3s ease;
+        }
+
+        .dot.active {
+            background-color: #ffffff;
+            width: 24px;
+            border-radius: 12px;
+            transform: scale(1);
+        }
+
+        /* Botones de Navegación */
+        .nav-buttons {
+            display: flex;
+            gap: 14px;
+        }
+
+        .nav-btn {
+            background: var(--btn-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.25rem;
+            font-weight: 500;
+            line-height: 1;
+            user-select: none;
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: var(--btn-hover);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(72, 60, 154, 0.5);
+        }
+
+        .nav-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        /* Estado deshabilitado */
+        .nav-btn:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+            border-color: transparent;
+            box-shadow: none;
+        }
+
+        /* Keyframes de animación */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .carousel-container {
+                margin-top: 40px;
+            }
+            .cards-wrapper {
+                height: 580px;
+            }
+            .card {
+                padding: 32px;
+            }
+            .card-title {
+                font-size: 1.2rem;
+            }
+            .card-text {
+                font-size: 0.95rem;
+                line-height: 1.6;
+            }
+            .floating-instruction {
+                top: -38px;
+                right: 0;
+                left: 0;
+                text-align: center;
+                margin: 0 auto;
+                width: max-content;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="carousel-container">
+        <!-- Instrucción Flotante -->
+        <div class="floating-instruction">
+            Haga clic sobre los botones <span>&lt;</span> y <span>&gt;</span>, para ver la información.
+        </div>
+
+        <!-- Tarjetas -->
+        <div class="cards-wrapper">
+            
+            <!-- Tarjeta 1 -->
+            <div class="card active">
+                <h2 class="card-title">Uso de índices para optimizar el acceso a datos</h2>
+                <div class="card-text">
+                    <p>Uno de los mecanismos más utilizados para mejorar el acceso a los datos consiste en la implementación de índices. Los índices permiten localizar registros específicos dentro de una tabla sin necesidad de recorrer todos los registros almacenados.</p>
+                    <p>Desde una perspectiva conceptual, los índices funcionan de manera similar al índice de un libro, donde es posible localizar rápidamente una página específica sin tener que leer todo el contenido. En bases de datos, los índices almacenan referencias a las ubicaciones de los registros, lo que permite acceder a ellos de forma más eficiente (Connolly & Begg, 2015).</p>
+                    <p>Cuando una consulta utiliza columnas indexadas en sus condiciones de búsqueda, el sistema gestor de bases de datos puede recuperar los registros requeridos mediante un index scan, lo cual reduce significativamente el tiempo necesario para procesar la consulta.</p>
+                </div>
+            </div>
+
+            <!-- Tarjeta 2 -->
+            <div class="card">
+                <h2 class="card-title">Reducción de escaneos completos de tablas</h2>
+                <div class="card-text">
+                    <p>Un problema común en bases de datos de gran tamaño es el uso excesivo de escaneos completos de tablas (table scans). Este tipo de operación ocurre cuando el sistema debe examinar todos los registros de una tabla para encontrar los datos solicitados por una consulta.</p>
+                    <p>En tablas que contienen millones de registros, este tipo de operación puede generar tiempos de respuesta elevados y un alto consumo de recursos del sistema.</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Controles Inferiores -->
+        <div class="controls-container">
+            <!-- Indicadores (Dots) -->
+            <div class="indicators">
+                <div class="dot active"></div>
+                <div class="dot"></div>
+            </div>
+
+            <!-- Botones de Navegación por Clic -->
+            <div class="nav-buttons">
+                <button class="nav-btn" id="prevBtn" aria-label="Tarjeta anterior" disabled>&lt;</button>
+                <button class="nav-btn" id="nextBtn" aria-label="Siguiente tarjeta">&gt;</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lógica de Interacción -->
+    <script>
+        const cards = document.querySelectorAll('.card');
+        const dots = document.querySelectorAll('.dot');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        
+        let currentIndex = 0;
+
+        function updateCarousel(index) {
+            cards[currentIndex].classList.remove('active');
+            dots[currentIndex].classList.remove('active');
+
+            currentIndex = index;
+
+            cards[currentIndex].classList.add('active');
+            dots[currentIndex].classList.add('active');
+
+            // Bloqueo estricto de extremos (No infinito)
+            prevBtn.disabled = (currentIndex === 0);
+            nextBtn.disabled = (currentIndex === cards.length - 1);
+        }
+
+        nextBtn.addEventListener('click', () => {
+            if (currentIndex < cards.length - 1) {
+                updateCarousel(currentIndex + 1);
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                updateCarousel(currentIndex - 1);
+            }
+        });
+    </script>
+</body>
+</html>
