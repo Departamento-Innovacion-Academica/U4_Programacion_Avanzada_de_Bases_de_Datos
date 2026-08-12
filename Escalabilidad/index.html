@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrusel 3D - Escalabilidad de Sistemas</title>
+    <!-- Fuente Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Iconos FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #f3f0ff;
+            --primary-color: #5b3e96;
+            --accent-color: #8c62dc;
+            --text-dark: #2d2738;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            perspective: 1000px;
+            padding: 20px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 50px;
+            font-weight: 700;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Instrucción Flotante en la derecha arriba */
+        .instruccion-flotante {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(91, 62, 150, 0.92);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            pointer-events: none;
+            animation: bounce 2s infinite;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Contenedor del Carrusel 3D */
+        .carousel-container {
+            position: relative;
+            width: 100%;
+            max-width: 1100px;
+            height: 450px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .carousel {
+            position: relative;
+            width: 340px;
+            height: 420px;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* Tarjetas */
+        .card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px 25px;
+            box-shadow: 0 15px 35px rgba(91, 62, 150, 0.12);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            backface-visibility: hidden;
+            transition: transform 0.6s, opacity 0.6s, box-shadow 0.3s;
+            border-top: 5px solid var(--primary-color);
+        }
+
+        /* Efecto Hover en las tarjetas */
+        .card:hover {
+            box-shadow: 0 20px 40px rgba(140, 98, 220, 0.3);
+            transform: scale(1.03) !important;
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            transition: transform 0.3s, color 0.3s;
+        }
+
+        .card:hover .card-icon {
+            transform: scale(1.15) rotate(5deg);
+            color: var(--accent-color);
+        }
+
+        .card h3 {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .card p {
+            font-size: 0.88rem;
+            color: #555;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 5;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: auto;
+        }
+
+        .btn-more {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            margin-top: 15px;
+        }
+
+        .btn-more:hover {
+            background: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        /* Controles de Navegación */
+        .nav-buttons {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .nav-btn {
+            background: white;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .nav-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* Modal Flotante (Efectos de entrada y salida) */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            position: relative;
+            transform: scale(0.7) translateY(100px);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-left: 8px solid var(--primary-color);
+        }
+
+        .modal.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #f0f0f0;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .close-modal:hover {
+            background: #ff5252;
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .modal-body h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .modal-body div {
+            font-size: 0.95rem;
+            color: #444;
+            line-height: 1.6;
+        }
+
+        .modal-body ul {
+            margin-left: 20px;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+
+        .modal-body li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Instrucción Flotante -->
+    <div class="instruccion-flotante">
+        <i class="fa-solid fa-hand-pointer"></i>
+        <span>Haga clic sobre los botones para interactuar y ampliar la información.</span>
+    </div>
+
+    <h1>Escalabilidad del Sistema</h1>
+
+    <!-- Contenedor del Carrusel -->
+    <div class="carousel-container">
+        <div class="carousel" id="carousel">
+            
+            <!-- Tarjeta 1 -->
+            <div class="card" data-index="0">
+                <i class="fa-solid fa-arrow-up-right-dots card-icon"></i>
+                <h3>Ventajas de la escalabilidad vertical</h3>
+                <p>Entre las principales ventajas de este enfoque se encuentran: Simplicidad en la administración del sistema...</p>
+                <button class="btn-more">Ver detalles</button>
+                <div class="hidden-info" style="display:none;">
+                    <p>Entre las principales ventajas de este enfoque se encuentran:</p>
+                    <ul>
+                        <li>Simplicidad en la administración del sistema.</li>
+                        <li>Menor complejidad arquitectónica.</li>
+                        <li>Facilidad para implementar mejoras de rendimiento.</li>
+                    </ul>
+                    <p>Estos factores hacen que la escalabilidad vertical sea una estrategia adecuada para sistemas de tamaño pequeño o mediano.</p>
+                </div>
+            </div>
+
+            <!-- Tarjeta 2 -->
+            <div class="card" data-index="1">
+                <i class="fa-solid fa-triangle-exclamation card-icon"></i>
+                <h3>Limitaciones de la escalabilidad vertical</h3>
+                <p>A pesar de sus ventajas, este enfoque presenta algunas limitaciones importantes...</p>
+                <button class="btn-more">Ver detalles</button>
+                <div class="hidden-info" style="display:none;">
+                    <p>A pesar de sus ventajas, este enfoque presenta algunas limitaciones importantes:</p>
+                    <ul>
+                        <li>Existe un límite físico en la capacidad del hardware.</li>
+                        <li>El costo del hardware de alto rendimiento puede ser elevado.</li>
+                        <li>El sistema continúa dependiendo de un único servidor.</li>
+                    </ul>
+                    <p>Debido a estas limitaciones, los sistemas que manejan grandes volúmenes de datos suelen adoptar enfoques basados en escalabilidad horizontal.</p>
+                </div>
+            </div>
+
+            <!-- Tarjeta 3 -->
+            <div class="card" data-index="2">
+                <i class="fa-solid fa-network-wired card-icon"></i>
+                <h3>Escalabilidad horizontal</h3>
+                <p>La escalabilidad horizontal, también conocida como scale-out, consiste en aumentar la capacidad del sistema...</p>
+                <button class="btn-more">Ver detalles</button>
+                <div class="hidden-info" style="display:none;">
+                    <p>La escalabilidad horizontal, también conocida como scale-out, consiste en aumentar la capacidad del sistema mediante la incorporación de múltiples servidores que trabajan de manera conjunta para procesar las solicitudes de los usuarios.</p>
+                    <br>
+                    <p>En este enfoque, los datos y las operaciones se distribuyen entre varios nodos del sistema, lo que permite repartir la carga de trabajo y mejorar la capacidad de procesamiento global.</p>
+                    <br>
+                    <p>La Figura 4 muestra un ejemplo de arquitectura basada en escalabilidad horizontal.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Flechas de navegación -->
+    <div class="nav-buttons">
+        <button class="nav-btn" id="prevBtn"><i class="fa-solid fa-chevron-left"></i></button>
+        <button class="nav-btn" id="nextBtn"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+
+    <!-- Ventana Modal para Ampliar Info -->
+    <div class="modal" id="infoModal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeModal"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-body" id="modalBody">
+                <!-- Contenido dinámico con JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const carousel = document.getElementById('carousel');
+        const cards = document.querySelectorAll('.card');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const modal = document.getElementById('infoModal');
+        const closeModal = document.getElementById('closeModal');
+        const modalBody = document.getElementById('modalBody');
+
+        let currentIndex = 0;
+        const totalCards = cards.length;
+        const theta = 360 / totalCards; 
+        const radius = Math.round((170 / Math.tan(Math.PI / totalCards))); 
+
+        function updateCarousel() {
+            cards.forEach((card, i) => {
+                const cardIndex = i - currentIndex;
+                const angle = cardIndex * theta;
+                
+                if (i === currentIndex) {
+                    card.style.transform = `rotateY(${angle}deg) translateZ(${radius + 30}px)`;
+                    card.style.opacity = '1';
+                    card.style.zIndex = '10';
+                } else {
+                    card.style.transform = `rotateY(${angle}deg) translateZ(${radius - 40}px) scale(0.82)`;
+                    card.style.opacity = '0.45';
+                    card.style.zIndex = '1';
+                }
+            });
+        }
+
+        // Eventos de navegación por botones
+        nextBtn.addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % totalCards;
+            updateCarousel();
+        });
+
+        prevBtn.addEventListener('click', () => {
+            currentIndex = (currentIndex - 1 + totalCards) % totalCards;
+            updateCarousel();
+        });
+
+        // Click en tarjetas para centrar
+        cards.forEach((card, index) => {
+            card.addEventListener('click', (e) => {
+                if(e.target.tagName !== 'BUTTON') {
+                    currentIndex = index;
+                    updateCarousel();
+                }
+            });
+        });
+
+        // Abrir Modal
+        cards.forEach(card => {
+            const btn = card.querySelector('.btn-more');
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                const title = card.querySelector('h3').innerText;
+                const iconClass = card.querySelector('.card-icon').className;
+                const fullContent = card.querySelector('.hidden-info').innerHTML;
+
+                modalBody.innerHTML = `
+                    <h2><i class="${iconClass}"></i> ${title}</h2>
+                    <div>${fullContent}</div>
+                `;
+
+                modal.classList.add('active');
+            });
+        });
+
+        // Cerrar Modal
+        closeModal.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+
+        modal.addEventListener('click', (e) => {
+            if(e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+
+        // Inicializar carrusel
+        updateCarousel();
+    </script>
+</body>
+</html>
