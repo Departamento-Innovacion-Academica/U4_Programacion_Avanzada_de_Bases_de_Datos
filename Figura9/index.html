@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flujo de Consulta SQL</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background-color: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    /* Mensaje de instrucción */
+    .instruction-text {
+      color: #334155;
+      font-size: 15px;
+      margin-bottom: 16px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    /* Botón ▶ Reiniciar */
+    .restart-btn {
+      background-color: #0f172a;
+      color: #ffffff;
+      border: none;
+      border-radius: 50px;
+      padding: 10px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 35px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+      transition: all 0.2s ease;
+    }
+
+    .restart-btn:hover {
+      background-color: #1e293b;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.25);
+    }
+
+    .restart-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Contenedor principal con margen seguro para los giros */
+    .flow-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 820px;
+      padding: 0 45px; /* Espacio para giros laterales */
+    }
+
+    /* Filas Flexbox */
+    .flow-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      margin-bottom: 35px;
+    }
+
+    .flow-row:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Tarjeta Blanca de Componente */
+    .card {
+      background-color: #ffffff;
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.04);
+      border: 1px solid #f1f5f9;
+      width: 44%;
+      height: 100px;
+      z-index: 2;
+    }
+
+    .icon-box {
+      width: 55px;
+      height: 55px;
+      flex-shrink: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .card-text {
+      color: #0f172a;
+      font-size: 19px;
+      font-weight: 700;
+      line-height: 1.25;
+      letter-spacing: -0.3px;
+    }
+
+    .card-text span {
+      display: block;
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    /* Flecha Horizontal Intermedia */
+    .mid-arrow {
+      width: 12%;
+      height: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2;
+    }
+
+    /* Flecha Inicial (Izquierda superior) */
+    .entry-arrow {
+      position: absolute;
+      left: 2px;
+      top: 40px;
+      width: 35px;
+      height: 20px;
+      z-index: 2;
+    }
+
+    /* Conector Giro U - Derecha (Fila 1 a Fila 2) */
+    .turn-right-svg {
+      position: absolute;
+      right: 2px;
+      top: 50px;
+      width: 45px;
+      height: 135px;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Conector Giro U - Izquierda (Fila 2 a Fila 3) */
+    .turn-left-svg {
+      position: absolute;
+      left: 2px;
+      top: 185px;
+      width: 45px;
+      height: 135px;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Animación de Entrada */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animated {
+      opacity: 0;
+      animation: fadeInUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+
+    .d-1 { animation-delay: 0.1s; }
+    .d-2 { animation-delay: 0.25s; }
+    .d-3 { animation-delay: 0.4s; }
+    .d-4 { animation-delay: 0.55s; }
+    .d-5 { animation-delay: 0.7s; }
+    .d-6 { animation-delay: 0.85s; }
+
+    /* Adaptabilidad Móvil */
+    @media (max-width: 720px) {
+      .flow-wrapper {
+        padding: 0;
+        max-width: 420px;
+      }
+      .flow-row {
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 15px;
+      }
+      .card {
+        width: 100%;
+        height: auto;
+      }
+      .mid-arrow {
+        transform: rotate(90deg);
+        width: 30px;
+      }
+      .turn-right-svg, .turn-left-svg, .entry-arrow {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <p class="instruction-text">Haga clic sobre el botón "▶ Reiniciar" para reiniciar la animación</p>
+
+  <button class="restart-btn" onclick="restartAnimation()">
+    ▶ Reiniciar
+  </button>
+
+  <div class="flow-wrapper" id="flowWrapper">
+
+    <!-- Flecha Inicial de Entrada -->
+    <svg class="entry-arrow" viewBox="0 0 35 20" fill="none">
+      <line x1="0" y1="10" x2="28" y2="10" stroke="#0f172a" stroke-width="2.5"/>
+      <polygon points="35,10 25,5 25,15" fill="#0f172a"/>
+    </svg>
+
+    <!-- Curva Giro U - Derecha -->
+    <svg class="turn-right-svg animated d-2" viewBox="0 0 45 135" fill="none">
+      <path d="M 0 0 L 22 0 C 35 0, 35 135, 22 135 L 7 135" stroke="#0f172a" stroke-width="2.5" fill="none"/>
+      <polygon points="0,135 10,130 10,140" fill="#0f172a"/>
+    </svg>
+
+    <!-- Curva Giro U - Izquierda -->
+    <svg class="turn-left-svg animated d-4" viewBox="0 0 45 135" fill="none">
+      <path d="M 45 0 L 23 0 C 10 0, 10 135, 23 135 L 38 135" stroke="#0f172a" stroke-width="2.5" fill="none"/>
+      <polygon points="45,135 35,130 35,140" fill="#0f172a"/>
+    </svg>
+
+    <!-- FILA 1 -->
+    <div class="flow-row">
+      <!-- 1. Aplicación -->
+      <div class="card animated d-1">
+        <div class="icon-box">
+          <svg width="55" height="55" viewBox="0 0 60 60" fill="none">
+            <circle cx="30" cy="22" r="11" fill="#e28a50"/>
+            <path d="M 12 50 C 12 36, 20 34, 30 34 C 40 34, 48 36, 48 50 Z" fill="#dd4b39"/>
+            <path d="M 22 44 L 20 40 L 16 40 L 14 44 L 10 44 L 11 48 L 8 51 L 11 54 L 10 58 L 14 58 L 16 60 L 20 60 L 22 56 L 25 54 L 22 51 L 25 48 Z" fill="#f1b500" transform="scale(0.6) translate(-2, 10)"/>
+          </svg>
+        </div>
+        <div class="card-text">Aplicación</div>
+      </div>
+
+      <!-- Flecha 1 -> 2 -->
+      <div class="mid-arrow animated d-1">
+        <svg width="100%" height="20" viewBox="0 0 60 20" fill="none">
+          <line x1="0" y1="10" x2="50" y2="10" stroke="#0f172a" stroke-width="2.5"/>
+          <polygon points="58,10 48,5 48,15" fill="#0f172a"/>
+        </svg>
+      </div>
+
+      <!-- 2. Consulta SQL -->
+      <div class="card animated d-2">
+        <div class="icon-box">
+          <svg width="55" height="55" viewBox="0 0 60 60" fill="none">
+            <path d="M 18 10 C 18 8, 20 6, 22 6 L 46 6 C 48 6, 50 8, 50 10 L 50 50 C 50 52, 48 54, 46 54 L 22 54 C 20 54, 18 52, 18 50 Z" fill="#e0f2fe"/>
+            <circle cx="24" cy="22" r="10" stroke="#0284c7" stroke-width="3" fill="#ffffff"/>
+            <line x1="17" y1="29" x2="10" y2="36" stroke="#0284c7" stroke-width="4" stroke-linecap="round"/>
+            <path d="M 20 22 L 23 18 L 27 20 L 30 15" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+            <rect x="26" y="38" width="22" height="12" rx="2" fill="#0284c7"/>
+            <text x="37" y="47" fill="#ffffff" font-size="8" font-weight="bold" text-anchor="middle">SQL</text>
+          </svg>
+        </div>
+        <div class="card-text">Consulta<br>SQL</div>
+      </div>
+    </div>
+
+    <!-- FILA 2 -->
+    <div class="flow-row">
+      <!-- 3. Plan de ejecución -->
+      <div class="card animated d-4">
+        <div class="icon-box">
+          <svg width="55" height="55" viewBox="0 0 60 60" fill="none">
+            <rect x="18" y="10" width="34" height="44" rx="3" fill="#e2e8f0"/>
+            <line x1="32" y1="18" x2="46" y2="18" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="32" y1="24" x2="44" y2="24" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="18" cy="14" r="5" fill="#0284c7"/>
+            <circle cx="22" cy="42" r="9" fill="#ef4444"/>
+            <circle cx="22" cy="42" r="7" fill="#ffffff"/>
+            <polyline points="22,38 22,42 25,42" stroke="#0f172a" stroke-width="1.5"/>
+            <rect x="36" y="38" width="10" height="12" fill="#dcfce7"/>
+            <path d="M 37 47 L 40 44 L 42 45 L 45 40" stroke="#10b981" stroke-width="1.5" fill="none"/>
+          </svg>
+        </div>
+        <div class="card-text">Plan de<br>ejecución</div>
+      </div>
+
+      <!-- Flecha 4 <- 3 (Acelerada a la Izquierda) -->
+      <div class="mid-arrow animated d-3">
+        <svg width="100%" height="20" viewBox="0 0 60 20" fill="none">
+          <line x1="60" y1="10" x2="10" y2="10" stroke="#0f172a" stroke-width="2.5"/>
+          <polygon points="2,10 12,5 12,15" fill="#0f172a"/>
+        </svg>
+      </div>
+
+      <!-- 4. Optimizador de consultas -->
+      <div class="card animated d-3">
+        <div class="icon-box">
+          <svg width="55" height="55" viewBox="0 0 60 60" fill="none">
+            <path d="M 30 12 L 33 16 L 38 15 L 39 20 L 44 21 L 43 26 L 47 29 L 44 32 L 47 36 L 42 38 L 41 43 L 36 42 L 33 46 L 30 42 L 27 46 L 24 42 L 19 43 L 18 38 L 13 36 L 16 32 L 13 29 L 17 26 L 16 21 L 21 20 L 22 15 L 27 16 Z" fill="#0284c7"/>
+            <circle cx="30" cy="29" r="8" fill="#ffffff"/>
+            <path d="M 22 36 L 40 18 C 42 16, 45 16, 46 18 C 48 20, 47 22, 45 24 L 28 41 Z" fill="#e2e8f0"/>
+          </svg>
+        </div>
+        <div class="card-text">Optimizador<br>de consultas</div>
+      </div>
+    </div>
+
+    <!-- FILA 3 -->
+    <div class="flow-row">
+      <!-- 5. Acceso a datos -->
+      <div class="card animated d-5">
+        <div class="icon-box">
+          <svg width="55" height="55" viewBox="0 0 60 60" fill="none">
+            <ellipse cx="22" cy="18" rx="14" ry="6" fill="#60a5fa"/>
+            <path d="M 8 18 L 8 42 C 8 48, 36 48, 36 42 L 36 18 Z" fill="#2563eb"/>
+            <ellipse cx="22" cy="42" rx="14" ry="6" fill="#3b82f6"/>
+            <rect x="24" y="32" width="28" height="20" rx="2" fill="#ffffff" stroke="#f43f5e" stroke-width="2"/>
+            <rect x="24" y="32" width="28" height="6" fill="#f43f5e"/>
+            <line x1="33" y1="38" x2="33" y2="52" stroke="#cbd5e1" stroke-width="1"/>
+            <line x1="42" y1="38" x2="42" y2="52" stroke="#cbd5e1" stroke-width="1"/>
+            <line x1="24" y1="45" x2="52" y2="45" stroke="#cbd5e1" stroke-width="1"/>
+          </svg>
+        </div>
+        <div class="card-text">Acceso a datos<br><span>(índices o tablas)</span></div>
+      </div>
+
+      <!-- Flecha 5 -> 6 -->
+      <div class="mid-arrow animated d-5">
+        <svg width="100%" height="20" viewBox="0 0 60 20" fill="none">
+          <line x1="0" y1="10" x2="50" y2="10" stroke="#0f172a" stroke-width="2.5"/>
+          <polygon points="58,10 48,5 48,15" fill="#0f172a"/>
+        </svg>
+      </div>
+
+      <!-- 6. Resultados devueltos -->
+      <div class="card animated d-6">
+        <div class="icon-box">
+          <svg width="55" height="55" viewBox="0 0 60 60" fill="none">
+            <rect x="14" y="10" width="32" height="44" rx="4" fill="#f1f5f9"/>
+            <path d="M 20 18 L 22 20 L 25 17" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
+            <line x1="28" y1="18" x2="38" y2="18" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+            <path d="M 20 25 L 24 29" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+            <path d="M 24 25 L 20 29" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+            <line x1="28" y1="27" x2="38" y2="27" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+            <text x="20" y="46" fill="#f43f5e" font-size="13" font-weight="bold">A+</text>
+            <path d="M 44 28 L 48 32 L 32 48 L 28 48 L 28 44 Z" fill="#fbbf24"/>
+          </svg>
+        </div>
+        <div class="card-text">Resultados<br>devueltos a<br>la aplicación</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function restartAnimation() {
+      const wrapper = document.getElementById('flowWrapper');
+      const clone = wrapper.cloneNode(true);
+      wrapper.parentNode.replaceChild(clone, wrapper);
+    }
+  </script>
+
+</body>
+</html>
